@@ -101,7 +101,7 @@ def buildNgramModel(data):  # --------------------------------------------------
         for ngram in ngrams:
             ngramCounts[tuple(ngram)] += 1
 
-    return (ngramCounts, count)
+    return ngramCounts
 
 
 # Creates a "powerset" of a given fivegram, permuting whether or not the
@@ -179,10 +179,10 @@ def main():
     # model2 = buildRatioModel(trainData)
     # model3 = buildNgramModel(trainData)
 
-    ngramcounts, count = buildNgramModel(trainData)
+    model = buildNgramModel(trainData)
 
-    testdata = parsefile('test')
-    ngramtest = runngram(open('test'), ngramcounts)
+    testdata = parsefile('devset')
+    ngramtest = runngram(open('devset'), model)
     evalPrint(ngramtest, testdata, "ngramtest")
 
     # nvcounts(sgram, ngramcounts)
