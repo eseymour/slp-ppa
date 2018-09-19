@@ -99,7 +99,7 @@ def buildNgramModel(data):  # --------------------------------------------------
         count += 1
         ngrams = ngramPowerset(sample[1:6])
         for ngram in ngrams:
-            ngramCounts[ngram] += 1
+            ngramCounts[tuple(ngram)] += 1
 
     print('  Building the Ngram Model ... ')
     print(f'    counted {count} samples')
@@ -111,7 +111,7 @@ def buildNgramModel(data):  # --------------------------------------------------
 
 # Creates a "powerset" of a given fivegram, permuting whether or not the
 # N V Prep N fields are set or None. Basically generating all possible
-# 1,2,3,4,5-grams from a given 4,5-gram
+# [0,]1,2,3,4[,5]-grams from a given 4,5-gram
 def ngramPowerset(ngram):  # -----------------------------------------------
     # ngram is a list
     ngrams = [] # the "powerset" of 4,5-gram
@@ -125,7 +125,7 @@ def ngramPowerset(ngram):  # -----------------------------------------------
             ngramCpy[index] = None
 
         # Add ngram to the "powerset"
-        ngrams.append(tuple(ngramCpy))
+        ngrams.append(ngramCpy)
 
     return ngrams
 
