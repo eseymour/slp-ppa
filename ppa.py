@@ -108,15 +108,24 @@ def buildNgramModel(data):  # --------------------------------------------------
     print(f'    counted {ngramCounts[(None, None, None, None, "V")]} V attachments')
     print(f'    counted {ngramCounts[(None, None, None, None, "N")]} N attachments')
     return (ngramCounts, count)
+	ppa.py
 
-
+# Creates a "powerset" of a given fivegram, permuting whether or not the
+# N V Prep N fields are set or None. Basically generating all possible
+# 1,2,3,4,5-grams from a given 5-gram
 def fivegramPowerset(fivegram):  # -----------------------------------------------
-    ngrams = []
-    indexSet = powerset([0, 1, 2, 3])
+    # fivegram is a list
+    ngrams = [] # the "powerset" of fivegram
+    indexSet = powerset([0, 1, 2, 3]) # Set of indices to set be set to None
     for indices in indexSet:
+        # Copy of fivegram so we can make modifications
         ngram = fivegram.copy()
+
+        # Set specified indices to None
         for index in indices:
             ngram[index] = None
+
+        # Add ngram to the "powerset"
         ngrams.append(tuple(ngram))
 
     return ngrams
