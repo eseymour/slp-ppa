@@ -13,6 +13,8 @@
 #   1 is chairman of N.V. N
 
 import sys, re  # regular expressions
+from collections import defaultdict
+from itertools import combinations, chain
 
 def parsefile(filename):  #-----------------------------------------------------
 
@@ -82,12 +84,48 @@ def runRatioModel(threshold, data):  #------------------------------------------
   return [typeForSample(sample, threshold) for sample in data]
 
 
+def buildNgramModel(data): #----------------------------------------------------
+  ngramCounts = defaultdict(int)
+  count = 0
+  for sample in data:
+    count += 1
+    ngrams = fivegramPowerset(sample[1:6])
+    for ngram in ngrams:
+      ngramCounts[ngram] += 1
+
+  print('  Building the Ngram Model ... ')
+  print(f'    counted {count} samples')
+  print(f'    counted {len(ngramCounts.keys())} distinct ngrams')
+  print(f'    {sum(ngramCounts.values())} counts for all ngrams (should be count * 16)')
+  print(f'    counted {ngramCounts[(None, None, None, None, "V")]} V attachments')
+  print(f'    counted {ngramCounts[(None, None, None, None, "N")]} N attachments')
+  return (ngramCounts, count)
+
+def fivegramPowerset(fivegram): #-----------------------------------------------
+  ngrams = []
+  indexSet = powerset([0,1,2,3])
+  for indices in indexSet:
+    ngram = fivegram.copy()
+    for index in indices:
+      ngram[index] = None
+    ngrams.append(tuple(ngram))
+
+  return ngrams
+
+# From the itertools documentation
+def powerset(iterable): #-------------------------------------------------------
+  "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+  s = list(iterable)
+  return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+
+
 # main -------------------------------------------------------------------------
 
 print('------ ppaStub ------\n')
 trainData = parsefile('training')
 model1 = buildMajorityClassModel(trainData)
 model2 = buildRatioModel(trainData)
+model3 = buildNgramModel(trainData)
 
 if len(sys.argv) >= 2 and (sys.argv[1] == 'yesThisReallyIsTheFinalRun'):
   testData = parsefile('test')
