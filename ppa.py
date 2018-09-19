@@ -129,24 +129,27 @@ def powerset(iterable):  # -----------------------------------------------------
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
-# main -------------------------------------------------------------------------
+def main():
+    print('------ ppaStub ------\n')
+    trainData = parsefile('training')
+    model1 = buildMajorityClassModel(trainData)
+    model2 = buildRatioModel(trainData)
+    model3 = buildNgramModel(trainData)
 
-print('------ ppaStub ------\n')
-trainData = parsefile('training')
-model1 = buildMajorityClassModel(trainData)
-model2 = buildRatioModel(trainData)
-model3 = buildNgramModel(trainData)
+    if len(sys.argv) >= 2 and (sys.argv[1] == 'yesThisReallyIsTheFinalRun'):
+        testData = parsefile('test')
+        finalPredictions = runRatioModel(model2, testData)
+        predictions1 = runMajorityClassModel(model1, testData)
+        evalPrint(predictions1, testData, 'Majority Model on testData')
+        evalPrint(finalPredictions, testData, 'ratio model on test data')
 
-if len(sys.argv) >= 2 and (sys.argv[1] == 'yesThisReallyIsTheFinalRun'):
-    testData = parsefile('test')
-    finalPredictions = runRatioModel(model2, testData)
-    predictions1 = runMajorityClassModel(model1, testData)
-    evalPrint(predictions1, testData, 'Majority Model on testData')
-    evalPrint(finalPredictions, testData, 'ratio model on test data')
+    else:
+        devData = parsefile('devset')
+        predictions1 = runMajorityClassModel(model1, devData)
+        evalPrint(predictions1, devData, 'Majority Model on devData')
+        predictions2 = runRatioModel(model2, devData)
+        evalPrint(predictions2, devData, 'Ratio Model on devData')
 
-else:
-    devData = parsefile('devset')
-    predictions1 = runMajorityClassModel(model1, devData)
-    evalPrint(predictions1, devData, 'Majority Model on devData')
-    predictions2 = runRatioModel(model2, devData)
-    evalPrint(predictions2, devData, 'Ratio Model on devData')
+
+if __name__ == '__main__':
+    main()
