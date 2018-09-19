@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
-# Nigel Ward, UTEP, August 2018
+# Aleksandr Diamond and Edward Seymour, UTEP, September 2018
 # Speech and Language Processing,
 # Assignment C: Prepositional Phrase Attachment
 
-# This is just a skeleton to that should be fleshed out.
-# It is not intended as an example of good Python style
+# Based on a skeleton of code provided by Dr. Nigel Ward, UTEP, August 2018
 
 # for the input files, the fields are:
 #   ID, verb, noun1, preposition, noun2, attachment,
@@ -15,7 +14,7 @@
 
 import sys, re  # regular expressions
 
-def parsefile(filename):  #---------------------------------
+def parsefile(filename):  #-----------------------------------------------------
 
   inputfp = open(filename, 'r')
   array = []
@@ -23,7 +22,7 @@ def parsefile(filename):  #---------------------------------
     array.append(line.split())
   return array
 
-def evalPrint(predictions, labels, title): #---------------------------------
+def evalPrint(predictions, labels, title): #------------------------------------
   print(f'\n--- Performance of {title} ---')
   matches = [x == y[5] for x, y in zip(predictions, labels)]
   print('  Accuracy is %.2f' % (1.0 * sum(matches) / len(predictions)))
@@ -36,25 +35,25 @@ def evalPrint(predictions, labels, title): #---------------------------------
   print('  predicted N    %4d     %4d ' % (sum(predNtrueV), sum(predNtrueN)))
 
 
-def countAttachments(data, attachmentType): #---------------------------------
+def countAttachments(data, attachmentType): #-----------------------------------
   return len([sample for sample in data if sample[5] == attachmentType])
 
-def buildMajorityClassModel(data): #---------------------------------
+def buildMajorityClassModel(data): #--------------------------------------------
   if countAttachments(data, 'V') > countAttachments(data, 'N'):
     return 'V'
   else:
     return 'N'
 
-def runMajorityClassModel(model, data): #---------------------------------
+def runMajorityClassModel(model, data): #---------------------------------------
   predictions = [model] * len(data)
   return predictions
 
-def computeVNratioFeature(sample): #-------------------------------
+def computeVNratioFeature(sample): #--------------------------------------------
   verb = sample[1]
   noun1 = sample[2]
   return len(verb) / len(noun1)
 
-def buildRatioModel(data): #---------------------------------
+def buildRatioModel(data): #----------------------------------------------------
   # a crazy model, based on the idea of more attachments to longer words
   sumVattachmentRatios = 0.0
   sumNattachmentRatios = 0.0
@@ -73,17 +72,17 @@ def buildRatioModel(data): #---------------------------------
   print('    so setting threshold to be %.2f ' % threshold)
   return threshold
 
-def typeForSample(sample, threshold):  #---------------------------------
+def typeForSample(sample, threshold):  #----------------------------------------
    if computeVNratioFeature(sample) > threshold:
      return'V'
    else:
      return 'N'
 
-def runRatioModel(threshold, data):  #---------------------------------
+def runRatioModel(threshold, data):  #------------------------------------------
   return [typeForSample(sample, threshold) for sample in data]
 
 
-# main ----------------------------------------------------
+# main -------------------------------------------------------------------------
 
 print('------ ppaStub ------\n')
 trainData = parsefile('training')
