@@ -109,13 +109,14 @@ def buildNgramModel(data):  # --------------------------------------------------
     print(f'    counted {ngramCounts[(None, None, None, None, "N")]} N attachments')
     return (ngramCounts, count)
 
+
 # Creates a "powerset" of a given fivegram, permuting whether or not the
 # N V Prep N fields are set or None. Basically generating all possible
 # [0,]1,2,3,4[,5]-grams from a given 4,5-gram
 def ngramPowerset(ngram):  # -----------------------------------------------
     # ngram is a list
-    ngrams = [] # the "powerset" of 4,5-gram
-    indexSet = powerset([0, 1, 2, 3]) # Set of indices to set be set to None
+    ngrams = []  # the "powerset" of 4,5-gram
+    indexSet = powerset([0, 1, 2, 3])  # Set of indices to set be set to None
     for indices in indexSet:
         # Copy of ngram so we can make modifications
         ngramCpy = ngram.copy()
@@ -136,27 +137,52 @@ def powerset(iterable):  # -----------------------------------------------------
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
+import pprint as pp
+
+
+# return counts of sentence (it should have an N or V in it already)
+def counts(sentencepset, ngramcounts):
+    count = 0
+    for scombo in sentencepset:
+        scombo = tuple(scombo)
+        if ngramcounts[scombo] is not 0:
+            count += ngramcounts[scombo]
+    return count
+
 
 def main():
     print('------ ppaStub ------\n')
     trainData = parsefile('training')
-    model1 = buildMajorityClassModel(trainData)
-    model2 = buildRatioModel(trainData)
-    model3 = buildNgramModel(trainData)
+    # model1 = buildMajorityClassModel(trainData)
+    # model2 = buildRatioModel(trainData)
+    # model3 = buildNgramModel(trainData)
 
-    if len(sys.argv) >= 2 and (sys.argv[1] == 'yesThisReallyIsTheFinalRun'):
-        testData = parsefile('test')
-        finalPredictions = runRatioModel(model2, testData)
-        predictions1 = runMajorityClassModel(model1, testData)
-        evalPrint(predictions1, testData, 'Majority Model on testData')
-        evalPrint(finalPredictions, testData, 'ratio model on test data')
+    ngramcounts, count = buildNgramModel(trainData)
 
-    else:
-        devData = parsefile('devset')
-        predictions1 = runMajorityClassModel(model1, devData)
-        evalPrint(predictions1, devData, 'Majority Model on devData')
-        predictions2 = runRatioModel(model2, devData)
-        evalPrint(predictions2, devData, 'Ratio Model on devData')
+    # consider the following sentence for testing...
+    sentence = "prepare dinner for family"
+
+    nsentencepset = ngramPowerset((sentence + " N").split())
+    vsentencepset = ngramPowerset((sentence + " V").split())
+
+    print(counts(nsentencepset, ngramcounts))
+    print(counts(vsentencepset, ngramcounts))
+
+    # nvcounts(sgram, ngramcounts)
+
+    # if len(sys.argv) >= 2 and (sys.argv[1] == 'yesThisReallyIsTheFinalRun'):
+    #     testData = parsefile('test')
+    #     finalPredictions = runRatioModel(model2, testData)
+    #     predictions1 = runMajorityClassModel(model1, testData)
+    #     evalPrint(predictions1, testData, 'Majority Model on testData')
+    #     evalPrint(finalPredictions, testData, 'ratio model on test data')
+
+    # else:
+    #     devData = parsefile('devset')
+    #     predictions1 = runMajorityClassModel(model1, devData)
+    #     evalPrint(predictions1, devData, 'Majority Model on devData')
+    #     predictions2 = runRatioModel(model2, devData)
+    #     evalPrint(predictions2, devData, 'Ratio Model on devData')
 
 
 if __name__ == '__main__':
