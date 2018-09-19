@@ -132,12 +132,24 @@ def powerset(iterable):  # -----------------------------------------------------
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
-import pprint as pp
+def runngram(data, ngramcounts):
+    ret = list()
+    for line in data:
+        line = line.split()
+        del line[0]  # the dumb number
+        del line[-1] # expecting string without the answer
+        line = str(line)
+
+        probn = prob(line, ngramcounts)
+        if probn > 1 - probn:
+            ret.append('N')
+        else:
+            ret.append('V')
+    return ret
 
 
 # return probability it is n, based on average probability of each element of its powerset occuring in the testdata
 def counts(nsentencepset, vsentencepset, ngramcounts):
-
     avg_prob = 0
     for nscombo, vscombo in zip(nsentencepset, vsentencepset):  # iterate through both lists at the same time
         nscombo = tuple(nscombo)
@@ -150,6 +162,7 @@ def counts(nsentencepset, vsentencepset, ngramcounts):
             continue
         avg_prob += ngramcounts[nscombo] / (ngramcounts[nscombo] + ngramcounts[vscombo])
     return avg_prob / len(nsentencepset)  # they should have the same length
+
 
 # returns probability the sentence will bind to N
 def prob(sentence, ngramcounts):
@@ -167,18 +180,9 @@ def main():
 
     ngramcounts, count = buildNgramModel(trainData)
 
-    # consider the following sentence for testing...
-    sentence = "prepare dinner for family"
-
-    prob(sentence, ngramcounts)
-    # print(counts(vsentencepset, ngramcounts))
-
-    print('  Building the Ngram Model ... ')
-    print(f'    counted {count} samples')
-    print(f'    counted {len(ngramcounts.keys())} distinct ngrams')
-    print(f'    {sum(ngramcounts.values())} counts for all ngrams (should be count * 16)')
-    print(f'    counted {ngramcounts[(None, None, None, None, "V")]} V attachments')
-    print(f'    counted {ngramcounts[(None, None, None, None, "N")]} N attachments')
+    testdata = parsefile('test')
+    ngramtest = runngram(open('test'), ngramcounts)
+    evalPrint(ngramtest, testdata, "ngramtest")
 
     # nvcounts(sgram, ngramcounts)
 
@@ -195,7 +199,6 @@ def main():
     #     evalPrint(predictions1, devData, 'Majority Model on devData')
     #     predictions2 = runRatioModel(model2, devData)
     #     evalPrint(predictions2, devData, 'Ratio Model on devData')
-
 
 
 if __name__ == '__main__':
