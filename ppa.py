@@ -131,14 +131,13 @@ def powerset(iterable):  # -----------------------------------------------------
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
-
 def runngram(data, ngramcounts):
     ret = list()
     for line in data:
         line = line.split()
         del line[0]  # the dumb number
         del line[-1] # expecting string without the answer
-        line = str(line)
+        line = " ".join(line)
 
         probn = prob(line, ngramcounts)
         if probn > 1 - probn:
@@ -151,17 +150,19 @@ def runngram(data, ngramcounts):
 # return probability it is n, based on average probability of each element of its powerset occuring in the testdata
 def counts(nsentencepset, vsentencepset, ngramcounts):
     avg_prob = 0
+    prob_count = 0
     for nscombo, vscombo in zip(nsentencepset, vsentencepset):  # iterate through both lists at the same time
         nscombo = tuple(nscombo)
         vscombo = tuple(vscombo)
-        if nscombo is (None, None, None, None, "V") or nscombo is (None, None, None, None, "N"):
+        #if vscombo == (None, None, None, None, "V") or nscombo == (None, None, None, None, "N"):
             # these are special cases. Do not include them
-            continue
-        if ngramcounts[nscombo] is 0 or ngramcounts[vscombo] is 0:
+        #    continue
+        if ngramcounts[nscombo] == 0 and ngramcounts[vscombo] == 0:
             avg_prob += 0  # ostrich algorithm
             continue
         avg_prob += ngramcounts[nscombo] / (ngramcounts[nscombo] + ngramcounts[vscombo])
-    return avg_prob / len(nsentencepset)  # they should have the same length
+        prob_count += 1
+    return avg_prob / prob_count  # they should have the same length
 
 
 # returns probability the sentence will bind to N
