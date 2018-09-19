@@ -151,6 +151,12 @@ def counts(nsentencepset, vsentencepset, ngramcounts):
         avg_prob += ngramcounts[nscombo] / (ngramcounts[nscombo] + ngramcounts[vscombo])
     return avg_prob / len(nsentencepset)  # they should have the same length
 
+# returns probability the sentence will bind to N
+def prob(sentence, ngramcounts):
+    nsentencepset = ngramPowerset((sentence + " N").split())
+    vsentencepset = ngramPowerset((sentence + " V").split())
+    return counts(nsentencepset, vsentencepset, ngramcounts)
+
 
 def main():
     print('------ ppaStub ------\n')
@@ -164,11 +170,7 @@ def main():
     # consider the following sentence for testing...
     sentence = "prepare dinner for family"
 
-    nsentencepset = ngramPowerset((sentence + " N").split())
-    vsentencepset = ngramPowerset((sentence + " V").split())
-
-    print(f"probability its an N:{counts(nsentencepset, vsentencepset, ngramcounts)}")
-    print(f"probability its a V:{1 - counts(nsentencepset, vsentencepset, ngramcounts)}")
+    prob(sentence, ngramcounts)
     # print(counts(vsentencepset, ngramcounts))
 
     print('  Building the Ngram Model ... ')
@@ -193,6 +195,7 @@ def main():
     #     evalPrint(predictions1, devData, 'Majority Model on devData')
     #     predictions2 = runRatioModel(model2, devData)
     #     evalPrint(predictions2, devData, 'Ratio Model on devData')
+
 
 
 if __name__ == '__main__':
