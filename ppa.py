@@ -133,11 +133,8 @@ def powerset(iterable):  # -----------------------------------------------------
 
 def runngram(data, ngramcounts):
     ret = list()
-    for line in data:
-        line = line.split()
-        del line[0]  # the dumb number
-        del line[-1] # expecting string without the answer
-        line = " ".join(line)
+    for sample in data:
+        line = " ".join(sample[1:5])
 
         probn = prob(line, ngramcounts)
         if probn > 1 - probn:
@@ -182,7 +179,7 @@ def main():
     model = buildNgramModel(trainData)
 
     testdata = parsefile('devset')
-    ngramtest = runngram(open('devset'), model)
+    ngramtest = runngram(testdata, model)
     evalPrint(ngramtest, testdata, "ngramtest")
 
     # nvcounts(sgram, ngramcounts)
