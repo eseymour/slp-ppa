@@ -101,12 +101,6 @@ def buildNgramModel(data):  # --------------------------------------------------
         for ngram in ngrams:
             ngramCounts[tuple(ngram)] += 1
 
-    print('  Building the Ngram Model ... ')
-    print(f'    counted {count} samples')
-    print(f'    counted {len(ngramCounts.keys())} distinct ngrams')
-    print(f'    {sum(ngramCounts.values())} counts for all ngrams (should be count * 16)')
-    print(f'    counted {ngramCounts[(None, None, None, None, "V")]} V attachments')
-    print(f'    counted {ngramCounts[(None, None, None, None, "N")]} N attachments')
     return (ngramCounts, count)
 
 
@@ -145,6 +139,9 @@ def counts(sentencepset, ngramcounts):
     count = 0
     for scombo in sentencepset:
         scombo = tuple(scombo)
+        if scombo is (None, None, None, None, "V") or scombo is (None, None, None, None, "N"):
+            # these are special cases. Do not inlude them
+            continue
         if ngramcounts[scombo] is not 0:
             count += ngramcounts[scombo]
     return count
@@ -167,6 +164,13 @@ def main():
 
     print(counts(nsentencepset, ngramcounts))
     print(counts(vsentencepset, ngramcounts))
+
+    print('  Building the Ngram Model ... ')
+    print(f'    counted {count} samples')
+    print(f'    counted {len(ngramcounts.keys())} distinct ngrams')
+    print(f'    {sum(ngramcounts.values())} counts for all ngrams (should be count * 16)')
+    print(f'    counted {ngramcounts[(None, None, None, None, "V")]} V attachments')
+    print(f'    counted {ngramcounts[(None, None, None, None, "N")]} N attachments')
 
     # nvcounts(sgram, ngramcounts)
 
