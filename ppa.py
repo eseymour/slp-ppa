@@ -16,107 +16,117 @@ import sys, re  # regular expressions
 from collections import defaultdict
 from itertools import combinations, chain
 
-def parsefile(filename):  #-----------------------------------------------------
 
-  inputfp = open(filename, 'r')
-  array = []
-  for line in inputfp.readlines():
-    array.append(line.split())
-  return array
+def parsefile(filename):  # -----------------------------------------------------
 
-def evalPrint(predictions, labels, title): #------------------------------------
-  print(f'\n--- Performance of {title} ---')
-  matches = [x == y[5] for x, y in zip(predictions, labels)]
-  print('  Accuracy is %.2f' % (1.0 * sum(matches) / len(predictions)))
-  predVtrueV = [x == 'V' and y[5] == 'V' for x, y in zip(predictions, labels)]
-  predVtrueN = [x == 'V' and y[5] == 'N' for x, y in zip(predictions, labels)]
-  predNtrueV = [x == 'N' and y[5] == 'V' for x, y in zip(predictions, labels)]
-  predNtrueN = [x == 'N' and y[5] == 'N' for x, y in zip(predictions, labels)]
-  print('                true V   true N')
-  print('  predicted V    %4d     %4d ' % (sum(predVtrueV), sum(predVtrueN)))
-  print('  predicted N    %4d     %4d ' % (sum(predNtrueV), sum(predNtrueN)))
+    inputfp = open(filename, 'r')
+    array = []
+    for line in inputfp.readlines():
+        array.append(line.split())
+    return array
 
 
-def countAttachments(data, attachmentType): #-----------------------------------
-  return len([sample for sample in data if sample[5] == attachmentType])
-
-def buildMajorityClassModel(data): #--------------------------------------------
-  if countAttachments(data, 'V') > countAttachments(data, 'N'):
-    return 'V'
-  else:
-    return 'N'
-
-def runMajorityClassModel(model, data): #---------------------------------------
-  predictions = [model] * len(data)
-  return predictions
-
-def computeVNratioFeature(sample): #--------------------------------------------
-  verb = sample[1]
-  noun1 = sample[2]
-  return len(verb) / len(noun1)
-
-def buildRatioModel(data): #----------------------------------------------------
-  # a crazy model, based on the idea of more attachments to longer words
-  sumVattachmentRatios = 0.0
-  sumNattachmentRatios = 0.0
-  for sample in data:
-      VNratio = computeVNratioFeature(sample)
-      if sample[5] == 'V':
-          sumVattachmentRatios = sumVattachmentRatios + VNratio
-      else:
-          sumNattachmentRatios = sumNattachmentRatios + VNratio
-  avgVratio = sumVattachmentRatios / countAttachments(data, 'V')
-  avgNratio = sumNattachmentRatios / countAttachments(data, 'N')
-  threshold = (avgVratio + avgNratio) / 2
-  print('  Building the Ratio Model ... ')
-  print('    for V attachments, ratio of V length to N1 length is %.2f' % avgVratio)
-  print('    for N attachments, ratio of V length to N1 length is %.2f' % avgNratio)
-  print('    so setting threshold to be %.2f ' % threshold)
-  return threshold
-
-def typeForSample(sample, threshold):  #----------------------------------------
-   if computeVNratioFeature(sample) > threshold:
-     return'V'
-   else:
-     return 'N'
-
-def runRatioModel(threshold, data):  #------------------------------------------
-  return [typeForSample(sample, threshold) for sample in data]
+def evalPrint(predictions, labels, title):  # ------------------------------------
+    print(f'\n--- Performance of {title} ---')
+    matches = [x == y[5] for x, y in zip(predictions, labels)]
+    print('  Accuracy is %.2f' % (1.0 * sum(matches) / len(predictions)))
+    predVtrueV = [x == 'V' and y[5] == 'V' for x, y in zip(predictions, labels)]
+    predVtrueN = [x == 'V' and y[5] == 'N' for x, y in zip(predictions, labels)]
+    predNtrueV = [x == 'N' and y[5] == 'V' for x, y in zip(predictions, labels)]
+    predNtrueN = [x == 'N' and y[5] == 'N' for x, y in zip(predictions, labels)]
+    print('                true V   true N')
+    print('  predicted V    %4d     %4d ' % (sum(predVtrueV), sum(predVtrueN)))
+    print('  predicted N    %4d     %4d ' % (sum(predNtrueV), sum(predNtrueN)))
 
 
-def buildNgramModel(data): #----------------------------------------------------
-  ngramCounts = defaultdict(int)
-  count = 0
-  for sample in data:
-    count += 1
-    ngrams = fivegramPowerset(sample[1:6])
-    for ngram in ngrams:
-      ngramCounts[ngram] += 1
+def countAttachments(data, attachmentType):  # -----------------------------------
+    return len([sample for sample in data if sample[5] == attachmentType])
 
-  print('  Building the Ngram Model ... ')
-  print(f'    counted {count} samples')
-  print(f'    counted {len(ngramCounts.keys())} distinct ngrams')
-  print(f'    {sum(ngramCounts.values())} counts for all ngrams (should be count * 16)')
-  print(f'    counted {ngramCounts[(None, None, None, None, "V")]} V attachments')
-  print(f'    counted {ngramCounts[(None, None, None, None, "N")]} N attachments')
-  return (ngramCounts, count)
 
-def fivegramPowerset(fivegram): #-----------------------------------------------
-  ngrams = []
-  indexSet = powerset([0,1,2,3])
-  for indices in indexSet:
-    ngram = fivegram.copy()
-    for index in indices:
-      ngram[index] = None
-    ngrams.append(tuple(ngram))
+def buildMajorityClassModel(data):  # --------------------------------------------
+    if countAttachments(data, 'V') > countAttachments(data, 'N'):
+        return 'V'
+    else:
+        return 'N'
 
-  return ngrams
+
+def runMajorityClassModel(model, data):  # ---------------------------------------
+    predictions = [model] * len(data)
+    return predictions
+
+
+def computeVNratioFeature(sample):  # --------------------------------------------
+    verb = sample[1]
+    noun1 = sample[2]
+    return len(verb) / len(noun1)
+
+
+def buildRatioModel(data):  # ----------------------------------------------------
+    # a crazy model, based on the idea of more attachments to longer words
+    sumVattachmentRatios = 0.0
+    sumNattachmentRatios = 0.0
+    for sample in data:
+        VNratio = computeVNratioFeature(sample)
+        if sample[5] == 'V':
+            sumVattachmentRatios = sumVattachmentRatios + VNratio
+        else:
+            sumNattachmentRatios = sumNattachmentRatios + VNratio
+    avgVratio = sumVattachmentRatios / countAttachments(data, 'V')
+    avgNratio = sumNattachmentRatios / countAttachments(data, 'N')
+    threshold = (avgVratio + avgNratio) / 2
+    print('  Building the Ratio Model ... ')
+    print('    for V attachments, ratio of V length to N1 length is %.2f' % avgVratio)
+    print('    for N attachments, ratio of V length to N1 length is %.2f' % avgNratio)
+    print('    so setting threshold to be %.2f ' % threshold)
+    return threshold
+
+
+def typeForSample(sample, threshold):  # ----------------------------------------
+    if computeVNratioFeature(sample) > threshold:
+        return 'V'
+    else:
+        return 'N'
+
+
+def runRatioModel(threshold, data):  # ------------------------------------------
+    return [typeForSample(sample, threshold) for sample in data]
+
+
+def buildNgramModel(data):  # ----------------------------------------------------
+    ngramCounts = defaultdict(int)
+    count = 0
+    for sample in data:
+        count += 1
+        ngrams = fivegramPowerset(sample[1:6])
+        for ngram in ngrams:
+            ngramCounts[ngram] += 1
+
+    print('  Building the Ngram Model ... ')
+    print(f'    counted {count} samples')
+    print(f'    counted {len(ngramCounts.keys())} distinct ngrams')
+    print(f'    {sum(ngramCounts.values())} counts for all ngrams (should be count * 16)')
+    print(f'    counted {ngramCounts[(None, None, None, None, "V")]} V attachments')
+    print(f'    counted {ngramCounts[(None, None, None, None, "N")]} N attachments')
+    return (ngramCounts, count)
+
+
+def fivegramPowerset(fivegram):  # -----------------------------------------------
+    ngrams = []
+    indexSet = powerset([0, 1, 2, 3])
+    for indices in indexSet:
+        ngram = fivegram.copy()
+        for index in indices:
+            ngram[index] = None
+        ngrams.append(tuple(ngram))
+
+    return ngrams
+
 
 # From the itertools documentation
-def powerset(iterable): #-------------------------------------------------------
-  "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
-  s = list(iterable)
-  return chain.from_iterable(combinations(s, r) for r in range(len(s)+1))
+def powerset(iterable):  # -------------------------------------------------------
+    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
+    s = list(iterable)
+    return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
 
 # main -------------------------------------------------------------------------
@@ -128,18 +138,15 @@ model2 = buildRatioModel(trainData)
 model3 = buildNgramModel(trainData)
 
 if len(sys.argv) >= 2 and (sys.argv[1] == 'yesThisReallyIsTheFinalRun'):
-  testData = parsefile('test')
-  finalPredictions = runRatioModel(model2, testData)
-  predictions1 = runMajorityClassModel(model1, testData)
-  evalPrint(predictions1, testData, 'Majority Model on testData')
-  evalPrint(finalPredictions, testData, 'ratio model on test data')
+    testData = parsefile('test')
+    finalPredictions = runRatioModel(model2, testData)
+    predictions1 = runMajorityClassModel(model1, testData)
+    evalPrint(predictions1, testData, 'Majority Model on testData')
+    evalPrint(finalPredictions, testData, 'ratio model on test data')
 
 else:
-  devData = parsefile('devset')
-  predictions1 = runMajorityClassModel(model1, devData)
-  evalPrint(predictions1, devData, 'Majority Model on devData')
-  predictions2 = runRatioModel(model2, devData)
-  evalPrint(predictions2, devData, 'Ratio Model on devData')
-
-
-
+    devData = parsefile('devset')
+    predictions1 = runMajorityClassModel(model1, devData)
+    evalPrint(predictions1, devData, 'Majority Model on devData')
+    predictions2 = runRatioModel(model2, devData)
+    evalPrint(predictions2, devData, 'Ratio Model on devData')
