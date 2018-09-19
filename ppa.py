@@ -131,20 +131,25 @@ def powerset(iterable):  # -----------------------------------------------------
     s = list(iterable)
     return chain.from_iterable(combinations(s, r) for r in range(len(s) + 1))
 
+
 import pprint as pp
 
 
-# return counts of sentence (it should have an N or V in it already)
-def counts(sentencepset, ngramcounts):
-    count = 0
-    for scombo in sentencepset:
-        scombo = tuple(scombo)
-        if scombo is (None, None, None, None, "V") or scombo is (None, None, None, None, "N"):
-            # these are special cases. Do not inlude them
+# return probability it is n, based on average probability of each element of its powerset occuring in the testdata
+def counts(nsentencepset, vsentencepset, ngramcounts):
+
+    avg_prob = 0
+    for nscombo, vscombo in zip(nsentencepset, vsentencepset):  # iterate through both lists at the same time
+        nscombo = tuple(nscombo)
+        vscombo = tuple(vscombo)
+        if nscombo is (None, None, None, None, "V") or nscombo is (None, None, None, None, "N"):
+            # these are special cases. Do not include them
             continue
-        if ngramcounts[scombo] is not 0:
-            count += ngramcounts[scombo]
-    return count
+        if ngramcounts[nscombo] is 0 or ngramcounts[vscombo] is 0:
+            avg_prob += 0  # ostrich algorithm
+            continue
+        avg_prob += ngramcounts[nscombo] / (ngramcounts[nscombo] + ngramcounts[vscombo])
+    return avg_prob / len(nsentencepset)  # they should have the same length
 
 
 def main():
@@ -162,8 +167,9 @@ def main():
     nsentencepset = ngramPowerset((sentence + " N").split())
     vsentencepset = ngramPowerset((sentence + " V").split())
 
-    print(counts(nsentencepset, ngramcounts))
-    print(counts(vsentencepset, ngramcounts))
+    print(f"probability its an N:{counts(nsentencepset, vsentencepset, ngramcounts)}")
+    print(f"probability its a V:{1 - counts(nsentencepset, vsentencepset, ngramcounts)}")
+    # print(counts(vsentencepset, ngramcounts))
 
     print('  Building the Ngram Model ... ')
     print(f'    counted {count} samples')
